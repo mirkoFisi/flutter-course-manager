@@ -1,0 +1,22 @@
+name: flutter_course_manager
+description: Gestione Corsi di Sopravvivenza
+version: 1.0.0+1
+
+environment:
+  sdk: '>=2.19.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.1.0
+  csv: ^5.0.2
+  file_picker: ^6.1.1
+  excel: ^2.1.0
+  intl: ^0.18.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
