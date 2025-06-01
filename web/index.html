@@ -1,80 +1,799 @@
 <!DOCTYPE html>
-<html>
+<html lang="it">
 <head>
-  <base href="$FLUTTER_BASE_HREF">
-  <meta charset="UTF-8">
-  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="Gestione Corsi di Sopravvivenza">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="Team Adventure">
-  <meta name="msapplication-TileColor" content="#2a4d3a">
-  <meta name="theme-color" content="#2a4d3a">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
-  <link rel="icon" type="image/png" href="favicon.png"/>
-  <title>Team Adventure - Gestione Corsi</title>
-  <link rel="manifest" href="manifest.json">
-  <script>
-    var serviceWorkerVersion = null;
-    var scriptLoaded = false;
-    function loadMainDartJs() {
-      if (scriptLoaded) {
-        return;
-      }
-      scriptLoaded = true;
-      var scriptTag = document.createElement('script');
-      scriptTag.src = 'main.dart.js';
-      scriptTag.type = 'application/javascript';
-      document.body.append(scriptTag);
-    }
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function () {
-        navigator.serviceWorker.register('flutter_service_worker.js');
-      });
-    }
-  </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏕️ Team Adventure - Gestione Corsi</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/papaparse/5.4.1/papaparse.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2a4d3a 0%, #3a6a4a 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .section {
+            padding: 30px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .section:last-child {
+            border-bottom: none;
+        }
+
+        .section h2 {
+            color: #2a4d3a;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            min-width: 250px;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #2a4d3a;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #2a4d3a 0%, #3a6a4a 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(42, 77, 58, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+        }
+
+        .filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .filter-group select {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .view-toggle .btn {
+            flex: 1;
+            max-width: 150px;
+        }
+
+        .view-toggle .btn.active {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .course-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .course-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            padding: 20px;
+            border: 1px solid #eee;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .course-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+
+        .course-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2a4d3a;
+            margin-bottom: 10px;
+        }
+
+        .course-date {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .instructors {
+            margin-bottom: 10px;
+        }
+
+        .instructors-label {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .instructor-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .chip {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            color: #1976d2;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+
+        .course-notes {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #2a4d3a;
+            font-style: italic;
+            color: #666;
+        }
+
+        .error {
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+            color: #c62828;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #f44336;
+        }
+
+        .success {
+            background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #4caf50;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #2a4d3a;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid #2a4d3a;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #2a4d3a;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .file-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(108, 117, 125, 0.3);
+        }
+
+        .tip {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #ffc107;
+            color: #856404;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .section {
+                padding: 20px;
+            }
+
+            .course-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .input-group {
+                flex-direction: column;
+            }
+
+            .input-group input {
+                min-width: auto;
+            }
+
+            .filters {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div id="loading">
-    <style>
-      body { margin: 0; padding: 0; background: #2a4d3a; }
-      #loading { 
-        position: fixed; top: 50%; left: 50%; 
-        transform: translate(-50%, -50%); 
-        color: white; font-family: Arial;
-        text-align: center;
-      }
-      .spinner {
-        border: 3px solid rgba(255,255,255,0.3);
-        border-radius: 50%;
-        border-top: 3px solid white;
-        width: 40px; height: 40px;
-        animation: spin 1s linear infinite;
-        margin: 20px auto;
-      }
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-    </style>
-    <div class="spinner"></div>
-    <h2>🏕️ Team Adventure</h2>
-    <p>Caricamento in corso...</p>
-  </div>
-  <script src="flutter.js" defer></script>
-  <script>
-    window.addEventListener('load', function(ev) {
-      _flutter.loader.loadEntrypoint({
-        serviceWorker: {
-          serviceWorkerVersion: serviceWorkerVersion,
-        },
-        onEntrypointLoaded: function(engineInitializer) {
-          engineInitializer.initializeEngine().then(function(appRunner) {
-            appRunner.runApp();
-          });
+    <div class="container">
+        <div class="header">
+            <h1>🏕️ Team Adventure</h1>
+            <p>Gestione Corsi di Sopravvivenza</p>
+        </div>
+
+        <div class="section" id="dataSection">
+            <h2>📋 Caricamento Dati</h2>
+            
+            <div class="input-group">
+                <input type="text" id="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/...">
+                <button class="btn" onclick="loadSheetData()">Carica da Google Sheet</button>
+            </div>
+
+            <div class="tip">
+                💡 <strong>Tip:</strong> Assicurati che il foglio sia condiviso come "Chiunque abbia il link può visualizzare".
+            </div>
+
+            <hr style="margin: 20px 0; border: none; height: 1px; background: #eee;">
+
+            <div style="margin-bottom: 15px;">
+                <strong>Oppure carica un file locale:</strong>
+            </div>
+            
+            <input type="file" id="fileInput" class="file-input" accept=".csv" onchange="loadLocalFile()">
+            <label for="fileInput" class="file-label">
+                📁 Carica File CSV
+            </label>
+
+            <div id="errorMessage"></div>
+            <div id="successMessage"></div>
+        </div>
+
+        <div class="section" id="controlsSection" style="display: none;">
+            <h2>🎛️ Controlli e Filtri</h2>
+            
+            <div class="stats" id="statsSection"></div>
+
+            <div class="filters">
+                <div class="filter-group">
+                    <label>Filtra per istruttore:</label>
+                    <select id="instructorFilter" onchange="applyFilters()">
+                        <option value="">Tutti gli istruttori</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Filtra per corso:</label>
+                    <select id="courseFilter" onchange="applyFilters()">
+                        <option value="">Tutti i corsi</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Filtra per mese:</label>
+                    <select id="monthFilter" onchange="applyFilters()">
+                        <option value="">Tutti i mesi</option>
+                        <option value="0">Gennaio</option>
+                        <option value="1">Febbraio</option>
+                        <option value="2">Marzo</option>
+                        <option value="3">Aprile</option>
+                        <option value="4">Maggio</option>
+                        <option value="5">Giugno</option>
+                        <option value="6">Luglio</option>
+                        <option value="7">Agosto</option>
+                        <option value="8">Settembre</option>
+                        <option value="9">Ottobre</option>
+                        <option value="10">Novembre</option>
+                        <option value="11">Dicembre</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="view-toggle">
+                <button class="btn active" id="listViewBtn" onclick="switchView('list')">📋 Lista</button>
+                <button class="btn" id="calendarViewBtn" onclick="switchView('calendar')">📅 Calendario</button>
+            </div>
+        </div>
+
+        <div class="section" id="coursesSection" style="display: none;">
+            <h2 id="coursesTitle">📚 Corsi</h2>
+            <div id="coursesContent"></div>
+        </div>
+
+        <div class="loading" id="loadingSection" style="display: none;">
+            <div class="spinner"></div>
+            <p>Caricamento in corso...</p>
+        </div>
+    </div>
+
+    <script>
+        let allCourses = [];
+        let filteredCourses = [];
+        let currentView = 'list';
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.innerHTML = `<div class="error">❌ <strong>Errore:</strong> ${message}</div>`;
+            setTimeout(() => errorDiv.innerHTML = '', 5000);
         }
-      });
-    });
-  </script>
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.innerHTML = `<div class="success">✅ <strong>Successo:</strong> ${message}</div>`;
+            setTimeout(() => successDiv.innerHTML = '', 3000);
+        }
+
+        function showLoading(show) {
+            document.getElementById('loadingSection').style.display = show ? 'block' : 'none';
+        }
+
+        function normalizeGoogleSheetsUrl(url) {
+            const patterns = [
+                /\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/,
+                /\/document\/d\/([a-zA-Z0-9-_]+)/,
+                /id=([a-zA-Z0-9-_]+)/
+            ];
+            
+            let fileId = null;
+            for (const pattern of patterns) {
+                const match = url.match(pattern);
+                if (match) {
+                    fileId = match[1];
+                    break;
+                }
+            }
+            
+            if (!fileId) {
+                throw new Error('Non riesco a estrarre l\'ID del foglio dall\'URL fornito');
+            }
+            
+            let gid = '0';
+            const gidMatch = url.match(/[#&]gid=([0-9]+)/);
+            if (gidMatch) {
+                gid = gidMatch[1];
+            }
+            
+            return `https://docs.google.com/spreadsheets/d/${fileId}/export?format=csv&gid=${gid}`;
+        }
+
+        async function loadSheetData() {
+            const url = document.getElementById('sheetUrl').value.trim();
+            if (!url) {
+                showError('Inserisci il link del Google Sheet');
+                return;
+            }
+
+            showLoading(true);
+            
+            try {
+                const csvUrl = normalizeGoogleSheetsUrl(url);
+                const response = await fetch(csvUrl);
+                
+                if (!response.ok) {
+                    throw new Error(`Errore HTTP: ${response.status}`);
+                }
+                
+                const csvText = await response.text();
+                if (!csvText.trim()) {
+                    throw new Error('Il foglio sembra essere vuoto');
+                }
+                
+                const courses = parseCsvData(csvText);
+                if (courses.length === 0) {
+                    throw new Error('Nessun corso valido trovato nel foglio');
+                }
+                
+                allCourses = courses;
+                showSuccess(`Caricati ${courses.length} corsi dal Google Sheet`);
+                initializeApp();
+                
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function loadLocalFile() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            
+            if (!file) return;
+            
+            showLoading(true);
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const csvText = e.target.result;
+                    const courses = parseCsvData(csvText);
+                    
+                    if (courses.length === 0) {
+                        throw new Error('Nessun corso valido trovato nel file');
+                    }
+                    
+                    allCourses = courses;
+                    showSuccess(`Caricati ${courses.length} corsi dal file CSV`);
+                    initializeApp();
+                    
+                } catch (error) {
+                    showError(error.message);
+                } finally {
+                    showLoading(false);
+                }
+            };
+            
+            reader.readAsText(file);
+        }
+
+        function parseCsvData(csvText) {
+            const courses = [];
+            const parsed = Papa.parse(csvText, {
+                header: false,
+                skipEmptyLines: true
+            });
+            
+            // Salta la prima riga (intestazioni)
+            for (let i = 1; i < parsed.data.length; i++) {
+                const row = parsed.data[i];
+                if (row.length < 5) continue;
+                
+                const startDate = row[0]?.toString().trim() || '';
+                const endDate = row[1]?.toString().trim() || '';
+                const course = row[2]?.toString().trim() || '';
+                const notes = row[3]?.toString().trim() || '';
+                
+                // Estrai istruttori (colonne 4-7)
+                const instructors = [];
+                for (let j = 4; j < Math.min(row.length, 8); j++) {
+                    const instructor = row[j]?.toString().trim();
+                    if (instructor) {
+                        instructors.push(instructor);
+                    }
+                }
+                
+                if (!course || instructors.length === 0) continue;
+                
+                const dateToUse = startDate || endDate;
+                if (!dateToUse) continue;
+                
+                try {
+                    const parsedStartDate = new Date(dateToUse);
+                    const parsedEndDate = endDate ? new Date(endDate) : parsedStartDate;
+                    
+                    if (isNaN(parsedStartDate.getTime())) continue;
+                    
+                    courses.push({
+                        startDate: parsedStartDate,
+                        endDate: parsedEndDate,
+                        course: course,
+                        notes: notes,
+                        instructors: instructors
+                    });
+                } catch (e) {
+                    continue;
+                }
+            }
+            
+            return courses.sort((a, b) => a.startDate - b.startDate);
+        }
+
+        function initializeApp() {
+            document.getElementById('controlsSection').style.display = 'block';
+            document.getElementById('coursesSection').style.display = 'block';
+            
+            populateFilters();
+            updateStats();
+            applyFilters();
+        }
+
+        function populateFilters() {
+            const instructors = [...new Set(allCourses.flatMap(c => c.instructors))].sort();
+            const courseTypes = [...new Set(allCourses.map(c => c.course))].sort();
+            
+            const instructorFilter = document.getElementById('instructorFilter');
+            const courseFilter = document.getElementById('courseFilter');
+            
+            // Reset filters
+            instructorFilter.innerHTML = '<option value="">Tutti gli istruttori</option>';
+            courseFilter.innerHTML = '<option value="">Tutti i corsi</option>';
+            
+            instructors.forEach(instructor => {
+                const option = document.createElement('option');
+                option.value = instructor;
+                option.textContent = instructor;
+                instructorFilter.appendChild(option);
+            });
+            
+            courseTypes.forEach(course => {
+                const option = document.createElement('option');
+                option.value = course;
+                option.textContent = course;
+                courseFilter.appendChild(option);
+            });
+        }
+
+        function updateStats() {
+            const totalCourses = allCourses.length;
+            const totalInstructors = new Set(allCourses.flatMap(c => c.instructors)).size;
+            const upcomingCourses = allCourses.filter(c => c.startDate >= new Date()).length;
+            
+            document.getElementById('statsSection').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-number">${totalCourses}</div>
+                    <div class="stat-label">Corsi Totali</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${totalInstructors}</div>
+                    <div class="stat-label">Istruttori</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${upcomingCourses}</div>
+                    <div class="stat-label">Prossimi Corsi</div>
+                </div>
+            `;
+        }
+
+        function applyFilters() {
+            const instructorFilter = document.getElementById('instructorFilter').value;
+            const courseFilter = document.getElementById('courseFilter').value;
+            const monthFilter = document.getElementById('monthFilter').value;
+            
+            filteredCourses = allCourses.filter(course => {
+                if (instructorFilter && !course.instructors.some(inst => 
+                    inst.toLowerCase().includes(instructorFilter.toLowerCase()))) {
+                    return false;
+                }
+                
+                if (courseFilter && !course.course.toLowerCase().includes(courseFilter.toLowerCase())) {
+                    return false;
+                }
+                
+                if (monthFilter !== '' && course.startDate.getMonth() !== parseInt(monthFilter)) {
+                    return false;
+                }
+                
+                return true;
+            });
+            
+            displayCourses();
+        }
+
+        function switchView(view) {
+            currentView = view;
+            document.getElementById('listViewBtn').classList.toggle('active', view === 'list');
+            document.getElementById('calendarViewBtn').classList.toggle('active', view === 'calendar');
+            displayCourses();
+        }
+
+        function displayCourses() {
+            const title = document.getElementById('coursesTitle');
+            const content = document.getElementById('coursesContent');
+            
+            if (filteredCourses.length === 0) {
+                title.textContent = '📚 Nessun corso trovato';
+                content.innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">Nessun corso trovato con i filtri selezionati.</p>';
+                return;
+            }
+            
+            title.textContent = `📚 Corsi (${filteredCourses.length})`;
+            
+            if (currentView === 'list') {
+                displayListView();
+            } else {
+                displayCalendarView();
+            }
+        }
+
+        function displayListView() {
+            const content = document.getElementById('coursesContent');
+            content.innerHTML = `
+                <div class="course-grid">
+                    ${filteredCourses.map(course => createCourseCard(course)).join('')}
+                </div>
+            `;
+        }
+
+        function createCourseCard(course) {
+            const formatDate = (date) => date.toLocaleDateString('it-IT');
+            const dateRange = course.startDate.getTime() === course.endDate.getTime() 
+                ? formatDate(course.startDate)
+                : `${formatDate(course.startDate)} - ${formatDate(course.endDate)}`;
+            
+            return `
+                <div class="course-card">
+                    <div class="course-title">${course.course}</div>
+                    <div class="course-date">📅 ${dateRange}</div>
+                    <div class="instructors">
+                        <div class="instructors-label">👨‍🏫 Istruttori:</div>
+                        <div class="instructor-chips">
+                            ${course.instructors.map(instructor => 
+                                `<span class="chip">${instructor}</span>`
+                            ).join('')}
+                        </div>
+                    </div>
+                    ${course.notes ? `<div class="course-notes">📝 ${course.notes}</div>` : ''}
+                </div>
+            `;
+        }
+
+        function displayCalendarView() {
+            // Raggruppa corsi per mese
+            const coursesByMonth = {};
+            filteredCourses.forEach(course => {
+                const monthKey = `${course.startDate.getFullYear()}-${course.startDate.getMonth()}`;
+                if (!coursesByMonth[monthKey]) {
+                    coursesByMonth[monthKey] = [];
+                }
+                coursesByMonth[monthKey].push(course);
+            });
+            
+            const content = document.getElementById('coursesContent');
+            const months = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
+                          'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
+            
+            let html = '';
+            Object.entries(coursesByMonth)
+                .sort(([a], [b]) => a.localeCompare(b))
+                .forEach(([monthKey, courses]) => {
+                    const [year, month] = monthKey.split('-');
+                    const monthName = months[parseInt(month)];
+                    
+                    html += `
+                        <div style="margin-bottom: 30px;">
+                            <h3 style="color: #2a4d3a; margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 10px;">
+                                📅 ${monthName} ${year} (${courses.length} corsi)
+                            </h3>
+                            <div class="course-grid">
+                                ${courses.map(course => createCourseCard(course)).join('')}
+                            </div>
+                        </div>
+                    `;
+                });
+            
+            content.innerHTML = html;
+        }
+    </script>
 </body>
 </html>
