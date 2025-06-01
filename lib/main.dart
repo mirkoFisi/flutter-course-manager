@@ -1,4 +1,4 @@
-
+import 'package:flutter/material.dart' as flutter;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
@@ -390,7 +390,9 @@ class _CourseManagementPageState extends State<CourseManagementPage> {
                 padding: EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: Colors.red.shade50,
-                  border: Border.all(color: Colors.red.shade200),
+                  // Usa:
+                  border: flutter.Border.all(color: Colors.red.shade200),
+                  //border: Border.all(color: Colors.red.shade200),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Column(
@@ -656,7 +658,7 @@ class _CourseManagementPageState extends State<CourseManagementPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('🏕️ Team Adventure'),
-        subtitle: Text('Pianificazione e gestione corsi per il gruppo'),
+        //subtitle: Text('Pianificazione e gestione corsi per il gruppo'),
         backgroundColor: Theme.of(context).primaryColor,
         foregroundColor: Colors.white,
       ),
